@@ -452,7 +452,7 @@ fn main() {
         }
     } else {
         let time_str = rlmocha_proc_macro::compile_time!();
-        println!("RLmocha REPL env (build at {}):",time_str);
+        println!("RLmocha REPL env (built at {},version {}):",time_str,env!("CARGO_PKG_VERSION"));
         let mut environment = ReplEnv::new();
         environment.load_builtin_func();
         print!("RLmocha>");

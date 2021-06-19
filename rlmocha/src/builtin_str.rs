@@ -1,4 +1,4 @@
-use crate::{RLFuncStru, RLResult, RLVal, RLenv, ReplEnv};
+use crate::{RLResult, RLVal, RLenv, ReplEnv};
 use std::collections::VecDeque;
 pub fn slice(mut xs: VecDeque<RLVal>, _env: *mut RLenv, _repl: *mut ReplEnv) -> RLResult {
     if xs.len() == 3 {
@@ -130,41 +130,50 @@ pub fn to_ascii(mut xs: VecDeque<RLVal>, _env: *mut RLenv, _repl: *mut ReplEnv) 
 }
 pub fn from_ascii(mut xs: VecDeque<RLVal>, _env: *mut RLenv, _repl: *mut ReplEnv) -> RLResult {
     if xs.len() == 1 {
-        if let RLVal::Qexpr(v) = xs.pop_front().unwrap(){
-            let mut  ret = String::new();
-            for x_w in v.iter(){
-                if let RLVal::Number(x) = x_w{
+        if let RLVal::Qexpr(v) = xs.pop_front().unwrap() {
+            let mut ret = String::new();
+            for x_w in v.iter() {
+                if let RLVal::Number(x) = x_w {
                     let x = *x as i32;
                     //在ascii范围内
-                    if 0 <= x && x < 128{
+                    if 0 <= x && x < 128 {
                         ret.push(x as u8 as char);
                     }
                 }
             }
             Ok(RLVal::RLStr(ret))
-        }else{
+        } else {
             return Err("builtin function str extension `from_ascii`:参数1类型错误".to_string());
         }
-    }else {
+    } else {
         return Err("builtin function str extension `from_ascii`:参数数量错误".to_string());
     }
 }
-pub fn format(mut xs: VecDeque<RLVal>, _env: *mut RLenv, _repl: *mut ReplEnv) -> RLResult{
+pub fn format(mut xs: VecDeque<RLVal>, _env: *mut RLenv, _repl: *mut ReplEnv) -> RLResult {
     if xs.len() == 1 {
-        Ok(RLVal::RLStr(format!("{}",xs.pop_front().unwrap())))
-    }else {
+        Ok(RLVal::RLStr(format!("{}", xs.pop_front().unwrap())))
+    } else {
         return Err("builtin function str extension `format`:参数数量错误".to_string());
     }
 }
-pub fn parse_str_to_number(mut xs: VecDeque<RLVal>, _env: *mut RLenv, _repl: *mut ReplEnv)-> RLResult{
+pub fn parse_str_to_number(
+    mut xs: VecDeque<RLVal>,
+    _env: *mut RLenv,
+    _repl: *mut ReplEnv,
+) -> RLResult {
     if xs.len() == 1 {
-        if let RLVal::RLStr(str_to_parse) = xs.pop_front().unwrap(){
-            let x:f64 = str_to_parse.parse().unwrap_or(0.);
+        if let RLVal::RLStr(str_to_parse) = xs.pop_front().unwrap() {
+            let x: f64 = str_to_parse.parse().unwrap_or(0.);
             return Ok(RLVal::Number(x));
-        }else{
-            return Err("builtin function str extension `parse_str_to_number`:参数1类型错误，应为Str".to_string());
+        } else {
+            return Err(
+                "builtin function str extension `parse_str_to_number`:参数1类型错误，应为Str"
+                    .to_string(),
+            );
         }
-    }else {
-        return Err("builtin function str extension `parse_str_to_number`:参数数量错误".to_string());
+    } else {
+        return Err(
+            "builtin function str extension `parse_str_to_number`:参数数量错误".to_string(),
+        );
     }
 }
