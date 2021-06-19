@@ -1,4 +1,4 @@
-//类型枚举
+extern crate rlmocha_proc_macro;
 use std::collections::{HashMap, LinkedList, VecDeque};
 use std::env;
 use std::fmt;
@@ -451,7 +451,8 @@ fn main() {
             cnt_line += 1;
         }
     } else {
-        println!("RLmocha REPL env:");
+        let time_str = rlmocha_proc_macro::compile_time!();
+        println!("RLmocha REPL env (build at {}):",time_str);
         let mut environment = ReplEnv::new();
         environment.load_builtin_func();
         print!("RLmocha>");
