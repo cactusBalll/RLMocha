@@ -189,6 +189,7 @@ pub struct RLFuncStru {
 }
 
 mod builtin;
+mod builtin_str;
 mod evaluation;
 mod parse_ast;
 mod tokenize;
@@ -275,6 +276,37 @@ impl ReplEnv {
             (*self.global)
                 .env
                 .insert("/".to_string(), RLVal::BuiltinFunc(builtin::div));
+            (*self.global).env.insert(
+                "str.slice".to_string(),
+                RLVal::BuiltinFunc(builtin_str::slice),
+            );
+            (*self.global).env.insert(
+                "str.len".to_string(),
+                RLVal::BuiltinFunc(builtin_str::strlen),
+            );
+            (*self.global)
+                .env
+                .insert("str.+".to_string(), RLVal::BuiltinFunc(builtin_str::concat));
+            (*self.global).env.insert(
+                "str.split".to_string(),
+                RLVal::BuiltinFunc(builtin_str::split),
+            );
+            (*self.global).env.insert(
+                "str.to_ascii".to_string(),
+                RLVal::BuiltinFunc(builtin_str::to_ascii),
+            );
+            (*self.global).env.insert(
+                "str.from_ascii".to_string(),
+                RLVal::BuiltinFunc(builtin_str::from_ascii),
+            );
+            (*self.global).env.insert(
+                "str.format".to_string(),
+                RLVal::BuiltinFunc(builtin_str::format),
+            );
+            (*self.global).env.insert(
+                "str.parse".to_string(),
+                RLVal::BuiltinFunc(builtin_str::parse_str_to_number),
+            );
         }
     }
     fn run_line(&mut self, input: String) -> RLResult {
