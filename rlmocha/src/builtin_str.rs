@@ -163,7 +163,7 @@ pub fn parse_str_to_number(
 ) -> RLResult {
     if xs.len() == 1 {
         if let RLVal::RLStr(str_to_parse) = xs.pop_front().unwrap() {
-            let x: f64 = str_to_parse.parse().unwrap_or(0.);
+            let x: f64 = str_to_parse.trim().parse().unwrap_or(0.);
             return Ok(RLVal::Number(x));
         } else {
             return Err(

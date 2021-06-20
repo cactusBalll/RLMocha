@@ -39,10 +39,10 @@ pub fn div(mut xs: VecDeque<RLVal>, _env: *mut RLenv, _repl: *mut ReplEnv) -> RL
         } else {
             return Err("builtin function `div`:参数错误".to_string());
         }
-        if b == 0.{
+        if b == 0. {
             return Err("builtin function `div`:除零错误".to_string());
-        }else{
-            return Ok(RLVal::Number(a/b));
+        } else {
+            return Ok(RLVal::Number(a / b));
         }
     } else {
         return Err("builtin function `div`:参数错误".to_string());
@@ -299,7 +299,7 @@ pub fn rl_error(xs: VecDeque<RLVal>, _env: *mut RLenv, _repl: *mut ReplEnv) -> R
     }
     Err("builtin function `rl_error`:运行时错误".to_string())
 }
-//从文件加载
+///从文件加载
 pub fn load_file(mut xs: VecDeque<RLVal>, _env: *mut RLenv, repl: *mut ReplEnv) -> RLResult {
     if xs.len() == 1 {
         if let RLVal::RLStr(s) = xs.pop_front().unwrap() {
@@ -331,11 +331,35 @@ pub fn load_file(mut xs: VecDeque<RLVal>, _env: *mut RLenv, repl: *mut ReplEnv) 
     }
     Ok(RLVal::Sexpr(VecDeque::new()))
 }
-
+pub fn eval_string(mut xs: VecDeque<RLVal>, _env: *mut RLenv, repl: *mut ReplEnv) -> RLResult {
+    if xs.len() == 1 {
+        if let RLVal::RLStr(s) = xs.pop_front().unwrap() {
+            unsafe {
+                let result = (*repl).run_file(s);
+                //打印运行结果
+                let mut cnt_line = 0;
+                for res in result {
+                    match res {
+                        Ok(_) => {}
+                        Err(s) => {
+                            println!("builtin function `eval_string`:在计算第{}个表达式时发生错误:{}", cnt_line, s);
+                        }
+                    }
+                    cnt_line += 1;
+                }
+            }
+        } else {
+            return Err("builtin function `eval_string`:参数错误:参数1应为Str".to_string());
+        }
+    } else {
+        return Err("builtin function `eval_string`:参数数量错误".to_string());
+    }
+    Ok(RLVal::Sexpr(VecDeque::new()))
+}
 pub fn _gc(_xs: VecDeque<RLVal>, _env: *mut RLenv, repl: *mut ReplEnv) -> RLResult {
     unsafe { (*repl).run_garbage_collector() }
 }
-//定义局部变量
+///定义局部变量
 pub fn put(mut xs: VecDeque<RLVal>, _env: *mut RLenv, _repl: *mut ReplEnv) -> RLResult {
     if xs.len() == 2 {
         let name;
@@ -359,7 +383,7 @@ pub fn put(mut xs: VecDeque<RLVal>, _env: *mut RLenv, _repl: *mut ReplEnv) -> RL
     }
     Ok(RLVal::Sexpr(VecDeque::new()))
 }
-//Qexpr的最后一个元素
+///Qexpr的最后一个元素
 pub fn last(mut xs: VecDeque<RLVal>, _env: *mut RLenv, _repl: *mut ReplEnv) -> RLResult {
     if xs.len() == 1 {
         if let RLVal::Qexpr(mut x) = xs.pop_front().unwrap() {
@@ -371,7 +395,7 @@ pub fn last(mut xs: VecDeque<RLVal>, _env: *mut RLenv, _repl: *mut ReplEnv) -> R
         return Err("builtin function `last`:参数错误".to_string());
     }
 }
-//Qexpr除最后一个元素之前元素
+///Qexpr除最后一个元素之前元素
 pub fn init(mut xs: VecDeque<RLVal>, _env: *mut RLenv, _repl: *mut ReplEnv) -> RLResult {
     if xs.len() == 1 {
         if let RLVal::Qexpr(mut x) = xs.pop_front().unwrap() {

@@ -187,12 +187,22 @@ pub struct RLFuncStru {
     pub isvla: bool,
     pub vla_para: String,
 }
-
+///内置基本函数
 mod builtin;
+///内置文件读写函数
+mod builtin_file;
+///内置字符串处理函数
 mod builtin_str;
+///求值，语义
 mod evaluation;
+/// 语法分析
 mod parse_ast;
+/// 词法分析
 mod tokenize;
+///位运算，由于Number是f64，位运算强转成i32计算，所以可能有奇怪的问题。
+mod builtin_bit;
+///数学
+mod builtin_math;
 pub struct ReplEnv {
     global: *mut RLenv,
     gc_list: LinkedList<Box<RLenv>>,
@@ -277,6 +287,10 @@ impl ReplEnv {
                 .env
                 .insert("/".to_string(), RLVal::BuiltinFunc(builtin::div));
             (*self.global).env.insert(
+                "eval_string".to_string(),
+                RLVal::BuiltinFunc(builtin::eval_string),
+            );
+            (*self.global).env.insert(
                 "str.slice".to_string(),
                 RLVal::BuiltinFunc(builtin_str::slice),
             );
@@ -306,6 +320,66 @@ impl ReplEnv {
             (*self.global).env.insert(
                 "str.parse".to_string(),
                 RLVal::BuiltinFunc(builtin_str::parse_str_to_number),
+            );
+            (*self.global).env.insert(
+                "file.input".to_string(),
+                RLVal::BuiltinFunc(builtin_file::input),
+            );
+            (*self.global).env.insert(
+                "file.write".to_string(),
+                RLVal::BuiltinFunc(builtin_file::write_to_file),
+            );
+            (*self.global).env.insert(
+                "file.read".to_string(),
+                RLVal::BuiltinFunc(builtin_file::read_to_string),
+            );
+            (*self.global).env.insert(
+                "bit.not".to_string(),
+                RLVal::BuiltinFunc(builtin_bit::not),
+            );
+            (*self.global).env.insert(
+                "bit.or".to_string(),
+                RLVal::BuiltinFunc(builtin_bit::or),
+            );
+            (*self.global).env.insert(
+                "bit.and".to_string(),
+                RLVal::BuiltinFunc(builtin_bit::and),
+            );
+            (*self.global).env.insert(
+                "bit.xor".to_string(),
+                RLVal::BuiltinFunc(builtin_bit::xor),
+            );
+            (*self.global).env.insert(
+                "bit.lsh".to_string(),
+                RLVal::BuiltinFunc(builtin_bit::lsh),
+            );
+            (*self.global).env.insert(
+                "bit.rsh".to_string(),
+                RLVal::BuiltinFunc(builtin_bit::rsh),
+            );
+            (*self.global).env.insert(
+                "math.pow".to_string(),
+                RLVal::BuiltinFunc(builtin_math::pow),
+            );
+            (*self.global).env.insert(
+                "math.sqrt".to_string(),
+                RLVal::BuiltinFunc(builtin_math::sqrt),
+            );
+            (*self.global).env.insert(
+                "math.ln".to_string(),
+                RLVal::BuiltinFunc(builtin_math::ln),
+            );
+            (*self.global).env.insert(
+                "math.sin".to_string(),
+                RLVal::BuiltinFunc(builtin_math::sin),
+            );
+            (*self.global).env.insert(
+                "math.cos".to_string(),
+                RLVal::BuiltinFunc(builtin_math::cos),
+            );
+            (*self.global).env.insert(
+                "math.tan".to_string(),
+                RLVal::BuiltinFunc(builtin_math::tan),
             );
         }
     }
@@ -450,9 +524,14 @@ fn main() {
             }
             cnt_line += 1;
         }
+        io::stdout().flush().expect("main:控制台错误");
     } else {
         let time_str = rlmocha_proc_macro::compile_time!();
-        println!("RLmocha REPL env (built at {},version {}):",time_str,env!("CARGO_PKG_VERSION"));
+        println!(
+            "RLmocha REPL env (built at {},version {}):",
+            time_str,
+            env!("CARGO_PKG_VERSION")
+        );
         let mut environment = ReplEnv::new();
         environment.load_builtin_func();
         print!("RLmocha>");
