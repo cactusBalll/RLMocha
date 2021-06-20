@@ -65,7 +65,7 @@ pub fn input(mut xs: VecDeque<RLVal>, _env: *mut RLenv, _repl: *mut ReplEnv) -> 
             let mut buffer = String::new();
             match io::stdin().read_line(&mut buffer) {
                 Ok(_) => {
-                    return Ok(RLVal::RLStr(buffer));
+                    return Ok(RLVal::RLStr(buffer.trim().to_string()));
                 }
                 Err(e) => {
                     return Err(format!(
