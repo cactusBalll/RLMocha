@@ -189,8 +189,12 @@ pub struct RLFuncStru {
 }
 ///内置基本函数
 mod builtin;
+///位运算，由于Number是f64，位运算强转成i32计算，所以可能有奇怪的问题。
+mod builtin_bit;
 ///内置文件读写函数
 mod builtin_file;
+///数学
+mod builtin_math;
 ///内置字符串处理函数
 mod builtin_str;
 ///求值，语义
@@ -199,10 +203,6 @@ mod evaluation;
 mod parse_ast;
 /// 词法分析
 mod tokenize;
-///位运算，由于Number是f64，位运算强转成i32计算，所以可能有奇怪的问题。
-mod builtin_bit;
-///数学
-mod builtin_math;
 pub struct ReplEnv {
     global: *mut RLenv,
     gc_list: LinkedList<Box<RLenv>>,
@@ -333,30 +333,24 @@ impl ReplEnv {
                 "file.read".to_string(),
                 RLVal::BuiltinFunc(builtin_file::read_to_string),
             );
-            (*self.global).env.insert(
-                "bit.not".to_string(),
-                RLVal::BuiltinFunc(builtin_bit::not),
-            );
-            (*self.global).env.insert(
-                "bit.or".to_string(),
-                RLVal::BuiltinFunc(builtin_bit::or),
-            );
-            (*self.global).env.insert(
-                "bit.and".to_string(),
-                RLVal::BuiltinFunc(builtin_bit::and),
-            );
-            (*self.global).env.insert(
-                "bit.xor".to_string(),
-                RLVal::BuiltinFunc(builtin_bit::xor),
-            );
-            (*self.global).env.insert(
-                "bit.lsh".to_string(),
-                RLVal::BuiltinFunc(builtin_bit::lsh),
-            );
-            (*self.global).env.insert(
-                "bit.rsh".to_string(),
-                RLVal::BuiltinFunc(builtin_bit::rsh),
-            );
+            (*self.global)
+                .env
+                .insert("bit.not".to_string(), RLVal::BuiltinFunc(builtin_bit::not));
+            (*self.global)
+                .env
+                .insert("bit.or".to_string(), RLVal::BuiltinFunc(builtin_bit::or));
+            (*self.global)
+                .env
+                .insert("bit.and".to_string(), RLVal::BuiltinFunc(builtin_bit::and));
+            (*self.global)
+                .env
+                .insert("bit.xor".to_string(), RLVal::BuiltinFunc(builtin_bit::xor));
+            (*self.global)
+                .env
+                .insert("bit.lsh".to_string(), RLVal::BuiltinFunc(builtin_bit::lsh));
+            (*self.global)
+                .env
+                .insert("bit.rsh".to_string(), RLVal::BuiltinFunc(builtin_bit::rsh));
             (*self.global).env.insert(
                 "math.pow".to_string(),
                 RLVal::BuiltinFunc(builtin_math::pow),
@@ -365,10 +359,9 @@ impl ReplEnv {
                 "math.sqrt".to_string(),
                 RLVal::BuiltinFunc(builtin_math::sqrt),
             );
-            (*self.global).env.insert(
-                "math.ln".to_string(),
-                RLVal::BuiltinFunc(builtin_math::ln),
-            );
+            (*self.global)
+                .env
+                .insert("math.ln".to_string(), RLVal::BuiltinFunc(builtin_math::ln));
             (*self.global).env.insert(
                 "math.sin".to_string(),
                 RLVal::BuiltinFunc(builtin_math::sin),
@@ -445,25 +438,26 @@ impl ReplEnv {
         to_mark.push(env);
         while to_mark.len() != 0 {
             let env = to_mark.pop().unwrap();
+            //println!("{:?}", env);
+            //println!("{:?}",(*env).env);
             for variable in (*env).env.values() {
                 match variable {
                     RLVal::RLFunc(f) => {
+                        //println!("mark{:?}", f.env);
                         (*f.env).marked = true;
+                        to_mark.push(f.env);
                         //防止多次访问跑不出来 (*(*f.env).captured).marked == false
-                        if (*f.env).captured != 0x0 as *mut RLenv
-                            && (*(*f.env).captured).marked == false
-                        {
+                        let p = (*f.env).captured;
+                        if p != 0x0 as *mut RLenv && (*p).marked == false {
+                            //println!("push{:?}",(*f.env).captured);
+                            (*p).marked = true;
                             to_mark.push((*f.env).captured);
                         }
-                        let mut p = (*f.env).outer_scope;
-                        while p != 0x0 as *mut RLenv {
+                        let p = (*f.env).outer_scope;
+                        if p != 0x0 as *mut RLenv && (*p).marked == false {
+                            println!("mark{:?}", p);
                             (*p).marked = true;
-                            if (*p).captured != 0x0 as *mut RLenv
-                                && (*(*f.env).captured).marked == false
-                            {
-                                to_mark.push((*p).captured);
-                            }
-                            p = (*p).outer_scope;
+                            to_mark.push(p)
                         }
                     }
                     _ => {}
