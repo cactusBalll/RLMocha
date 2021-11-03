@@ -16,6 +16,7 @@ fn eval_lambda(
             (*g.env).env.insert(k.clone(), v.clone());
         }
         (*g.env).outer_scope = env;
+        (*g.env).captured = (*f.env).captured;//bugfixed: 计算闭包时没有复制捕获列表
     }
     let partial = para.len() < g.para.len();
 
@@ -54,10 +55,12 @@ pub unsafe fn get_var(
     repl: *mut ReplEnv,
 ) -> Result<&mut RLVal, String> {
     //println!("Debug:get_var,getting {}", s);
+    //println!("getting from...{:?}",(*env).env);
     match (*env).env.get_mut(s) {
         Some(x) => Ok(x),
         None => {
             if (*env).captured != 0x0 as *mut RLenv {
+                //println!("getting from captured...{:?}",(*env).env);
                 match get_var(s, (*env).captured, repl) {
                     Ok(x) => {
                         return Ok(x);
@@ -65,7 +68,20 @@ pub unsafe fn get_var(
                     Err(_s) => {}
                 }
             }
-            let mut p = (*env).outer_scope;
+            if (*env).outer_scope != 0x0 as *mut RLenv {
+                match get_var(s, (*env).outer_scope, repl) {
+                    Ok(x) => {
+                        return Ok(x);
+                    }
+                    Err(_s) => {}
+                }
+            }
+            if let Some(x) = (*(*repl).global).env.get_mut(s) {
+                return Ok(x);
+            } else {
+                return Err(format!("语义:`get_var`:变量未定义:尝试获取`{}`", s));
+            }
+            /*let mut p = (*env).outer_scope;
             loop {
                 if p == 0x0 as *mut RLenv {
                     if let Some(x) = (*(*repl).global).env.get_mut(s) {
@@ -87,7 +103,7 @@ pub unsafe fn get_var(
                     }
                     p = (*p).outer_scope;
                 }
-            }
+            }*/
         }
     }
 }

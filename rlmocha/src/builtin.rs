@@ -101,6 +101,8 @@ pub fn lambda(mut xs: VecDeque<RLVal>, env: *mut RLenv, repl: *mut ReplEnv) -> R
             }
         }
         unsafe {
+            //println!("the body...{:#?}",body);
+            //println!("capturing...{:?}",(*env).env);
             let nenv = (*repl).new_env();
             (*nenv).captured = env;
             Ok(RLVal::RLFunc(RLFuncStru {
@@ -376,7 +378,11 @@ pub fn put(mut xs: VecDeque<RLVal>, _env: *mut RLenv, _repl: *mut ReplEnv) -> RL
         val = xs.pop_front().unwrap();
         //        println!("Debug:env[{}] = {:?}",name,val);
         unsafe {
-            (*_env).env.insert(name, val);
+            if let Ok(k) = crate::evaluation::get_var(&name, _env, _repl){
+                *k = val;
+            } else {
+                return Err("builtin function `put`:不能设置一个未定义局部变量的值".to_owned());
+            }
         }
     } else {
         return Err("builtin function `put`:参数错误".to_string());
