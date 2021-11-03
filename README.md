@@ -128,3 +128,7 @@ RLmocha>math.pow 2 10
 具体使用参见源码，其余map，foldl，head，tail等函数和lispy完全相同，可以去上述网站查看。
 #### 总结
 大概是用于rust入门练手的项目。。。
+
+bug 真的多。
+
+put(set!)有bug，而且没法修，修了不如重写。
